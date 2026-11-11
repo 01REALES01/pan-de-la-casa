@@ -42,14 +42,25 @@ if [ -z "$(az role assignment list --scope "$RG_ID" --query "[?principalId=='$PR
 fi
 
 echo "==> 3/5 Credenciales federadas OIDC para $REPO"
+# GitHub puede emitir el "subject" con nombres (repo:owner/repo:...) o con nombres + IDs inmutables
+# (repo:owner@<id>/repo@<id>:...). Registramos ambos formatos para cada environment.
+OWNER_ID=$(gh api "repos/$REPO" --jq .owner.id)
+REPO_ID=$(gh api "repos/$REPO" --jq .id)
+OWNER="${REPO%%/*}"; NAME_ONLY="${REPO##*/}"
 for ENV in dev prod; do
-  NAME="github-${ENV}"
-  if ! az identity federated-credential show --name "$NAME" --identity-name "$IDENTITY" -g "$RG" -o none 2>/dev/null; then
-    az identity federated-credential create --name "$NAME" --identity-name "$IDENTITY" -g "$RG" \
-      --issuer "https://token.actions.githubusercontent.com" \
-      --subject "repo:${REPO}:environment:${ENV}" \
-      --audiences "api://AzureADTokenExchange" -o none
-  fi
+  for FORMAT in name id; do
+    if [ "$FORMAT" = name ]; then
+      SUBJECT="repo:${REPO}:environment:${ENV}"; CRED="github-${ENV}"
+    else
+      SUBJECT="repo:${OWNER}@${OWNER_ID}/${NAME_ONLY}@${REPO_ID}:environment:${ENV}"; CRED="github-${ENV}-ids"
+    fi
+    if ! az identity federated-credential show --name "$CRED" --identity-name "$IDENTITY" -g "$RG" -o none 2>/dev/null; then
+      az identity federated-credential create --name "$CRED" --identity-name "$IDENTITY" -g "$RG" \
+        --issuer "https://token.actions.githubusercontent.com" \
+        --subject "$SUBJECT" \
+        --audiences "api://AzureADTokenExchange" -o none
+    fi
+  done
 done
 
 echo "==> 4/5 Environments, secretos y variables en GitHub"
