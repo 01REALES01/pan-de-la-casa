@@ -1,0 +1,74 @@
+name: CI/CD
+
+# Pull request a main  -> solo CI (lint + pruebas + análisis de IaC). Si falla, no se puede hacer merge.
+# Push a main (merge)  -> CI -> despliegue a dev -> smoke test -> despliegue a prod -> smoke test.
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-cd-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  test:
+    name: Lint y pruebas
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+
+  iac:
+    name: Validación y análisis de IaC
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compilar Bicep
+        run: |
+          az bicep build --file infra/main.bicep --stdout > /dev/null
+          az bicep build --file infra/budget.bicep --stdout > /dev/null
+      - name: Checkov (informativo)
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: infra
+          framework: bicep
+          soft_fail: true # no bloquea; los hallazgos aceptados se justifican en docs/despliegue.md
+
+  deploy-dev:
+    name: Desplegar dev
+    if: github.event_name == 'push'
+    needs: [test, iac]
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: dev
+    secrets: inherit
+    permissions:
+      id-token: write
+      contents: read
+      actions: read
+
+  deploy-prod:
+    name: Desplegar prod
+    needs: deploy-dev
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: prod
+    secrets: inherit
+    permissions:
+      id-token: write
+      contents: read
+      actions: read

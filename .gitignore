@@ -1,0 +1,12 @@
+node_modules/
+.DS_Store
+
+# Secretos locales: NUNCA se suben
+.env
+.env.*
+local.settings.json
+*.publishsettings
+
+# Generado por el pipeline
+src/web/version.json
+infra/*.json

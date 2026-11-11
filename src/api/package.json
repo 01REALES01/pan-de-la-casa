@@ -1,0 +1,13 @@
+{
+  "name": "pandelacasa-api",
+  "version": "0.1.0",
+  "private": true,
+  "description": "API de Pan de la Casa (Azure Functions, modelo v4, managed functions de Static Web Apps)",
+  "main": "src/functions/*.js",
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@azure/functions": "^4.5.0"
+  }
+}
