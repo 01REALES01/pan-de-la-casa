@@ -70,8 +70,11 @@ resource cosmos 'Microsoft.DocumentDB/databaseAccounts@2024-05-15' = {
     backupPolicy: {
       type: 'Periodic'
       periodicModeProperties: {
+        // RPO = 4 h (< 24 h exigido). 8 h de retención = las 2 copias que Cosmos DB guarda gratis;
+        // más retención genera copias con cobro. La restauración en modo periódico requiere un ticket
+        // de soporte: ver ADR de respaldo (alternativa: modo continuo de 7 días, restauración autoservicio).
         backupIntervalInMinutes: 240
-        backupRetentionIntervalInHours: 48
+        backupRetentionIntervalInHours: 8
         backupStorageRedundancy: 'Local'
       }
     }
