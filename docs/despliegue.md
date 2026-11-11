@@ -19,8 +19,9 @@ base de datos en la misma cuenta de Cosmos DB (`panaderia-dev` y `panaderia-prod
 los 1000 RU/s gratuitos). Un cambio se promueve haciendo merge a `main`: llega primero a dev y, si el smoke test pasa
 y se aprueba, a prod. El mismo commit se despliega en ambos.
 
-No usamos los entornos de preview de Static Web Apps porque comparten configuración con producción y podrían
-escribir en la base de datos de prod.
+No usamos los entornos de preview de Static Web Apps: con recursos separados, dev tiene su propia configuración y su
+propia base de datos sin depender de cómo el servicio maneje la configuración de los previews, y ningún cambio en
+prueba puede escribir en los datos de producción.
 
 ## Secretos e identidad
 
@@ -34,6 +35,8 @@ escribir en la base de datos de prod.
 
 ## Rollback
 
+> Estado: implementado en `deploy.yml`, **pendiente de prueba** con un commit que rompa `/api/health` en dev.
+
 1. **Automático:** si el smoke test falla, el pipeline busca el commit de la última ejecución exitosa de `ci-cd.yml`
    en `main`, lo vuelve a desplegar y verifica con otro smoke test. La ejecución queda en rojo para que se vea.
 2. **Manual:** en GitHub Actions, abrir una ejecución anterior exitosa y usar "Re-run all jobs", o hacer
@@ -46,6 +49,7 @@ principal responde y que `/api/health` devuelve `ok`.
 
 ## Pendiente
 
-- [ ] Medir la duración total del pipeline (la demo dura 5 minutos).
+- [ ] Medir la duración total del pipeline (la demo dura 5 minutos). Primera medición: CI + dev ≈ 3 min.
+- [ ] Probar el rollback automático en dev y guardar la captura.
 - [ ] Justificar los hallazgos de Checkov aceptados.
 - [ ] Capturas de una ejecución bloqueada por pruebas y de un rollback.

@@ -14,10 +14,6 @@ on:
 permissions:
   contents: read
 
-concurrency:
-  group: ci-cd-${{ github.ref }}
-  cancel-in-progress: false
-
 jobs:
   test:
     name: Lint y pruebas

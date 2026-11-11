@@ -20,8 +20,13 @@ jobs:
     environment:
       name: ${{ inputs.environment }}
       url: ${{ steps.infra.outputs.url }}
+    # Un despliegue a la vez por ambiente. Una aprobación pendiente en prod no frena los despliegues a dev.
+    concurrency:
+      group: deploy-${{ inputs.environment }}
+      cancel-in-progress: false
     env:
       RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
+      ALERT_EMAIL: ${{ secrets.ALERT_EMAIL }} # secreto: GitHub lo enmascara en los logs (el repo es público)
     steps:
       - uses: actions/checkout@v4
 
@@ -40,7 +45,7 @@ jobs:
             --resource-group "$RESOURCE_GROUP" \
             --name "pipeline-${{ inputs.environment }}-${{ github.run_number }}" \
             --template-file infra/main.bicep \
-            --parameters environment=${{ inputs.environment }} alertEmail="${{ vars.ALERT_EMAIL }}" \
+            --parameters environment=${{ inputs.environment }} alertEmail="$ALERT_EMAIL" \
             --query properties.outputs -o json)
           echo "swa=$(jq -r .swaName.value <<<"$out")" >> "$GITHUB_OUTPUT"
           echo "url=https://$(jq -r .swaHostname.value <<<"$out")" >> "$GITHUB_OUTPUT"

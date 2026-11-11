@@ -75,7 +75,8 @@ gh secret set AZURE_TENANT_ID       -R "$REPO" -b "$TENANT_ID"
 gh secret set AZURE_SUBSCRIPTION_ID -R "$REPO" -b "$SUBSCRIPTION_ID"
 gh variable set AZURE_RESOURCE_GROUP -R "$REPO" -b "$RG"
 if [ -n "$ALERT_EMAIL" ]; then
-  gh variable set ALERT_EMAIL -R "$REPO" -b "$ALERT_EMAIL"
+  # Secreto (no variable): el repo es público y los logs de Actions también.
+  gh secret set ALERT_EMAIL -R "$REPO" -b "$ALERT_EMAIL"
 fi
 
 echo "==> 5/5 Alerta de presupuesto"
