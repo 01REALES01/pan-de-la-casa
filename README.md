@@ -6,6 +6,15 @@ la infraestructura como código, el pipeline de CI/CD y la documentación de arq
 
 **MVP:** consultar el catálogo y registrar un pedido.
 
+- Sitio en producción: https://gentle-cliff-087349110.6.azurestaticapps.net
+- Sitio de pruebas (dev): https://thankful-pond-0a5bc3e10.3.azurestaticapps.net
+
+| Endpoint | Qué hace |
+|---|---|
+| `GET /api/products` | Catálogo con fotos y precios (Cosmos DB, con caché de 30 s por instancia) |
+| `POST /api/orders` | Registra un pedido para recoger: valida, calcula el total con los precios del catálogo y devuelve un código |
+| `GET /api/health` | Estado de la API (lo usa el smoke test) |
+
 ## Arquitectura
 
 | Capa | Servicio | Plan |
@@ -26,9 +35,10 @@ Detalle y justificación: [docs/hld.md](docs/hld.md) · decisiones: [docs/adr/](
 ```
 .github/workflows/   ci-cd.yml (CI + despliegue), deploy.yml (reutilizable), codeql.yml
 infra/               main.bicep (por ambiente), budget.bicep (alerta de presupuesto)
-scripts/             bootstrap.sh (configuración inicial), smoke.sh (smoke test)
-src/web/             frontend estático
-src/api/             API (Azure Functions)
+scripts/             bootstrap.sh, smoke.sh, seed-catalog.js (catálogo → Cosmos DB), dev-server.js
+data/catalog.json    productos y precios (se sincronizan en cada despliegue)
+src/web/             frontend estático (HTML, CSS y JS sin build; fotos en img/, fuentes en fonts/)
+src/api/             API (Azure Functions); la lógica está en src/api/src/lib/ y se prueba sin Azure
 tests/               pruebas unitarias (node:test)
 docs/                HLD, ADR, supuestos, diagramas, costos, diseño de despliegue
 ```
@@ -45,7 +55,11 @@ docs/                HLD, ADR, supuestos, diagramas, costos, diseño de desplieg
 npm ci
 npm run lint
 npm test
+npm run dev      # http://localhost:4280 con datos en memoria y las mismas cabeceras de seguridad que Azure
 ```
+
+Para cambiar un producto o un precio, se edita `data/catalog.json` y se abre un pull request: las pruebas validan el
+catálogo y el despliegue lo sincroniza con la base de datos de cada ambiente.
 
 ## Configuración inicial (una sola vez)
 

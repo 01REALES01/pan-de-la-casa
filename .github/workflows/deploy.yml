@@ -49,6 +49,24 @@ jobs:
             --query properties.outputs -o json)
           echo "swa=$(jq -r .swaName.value <<<"$out")" >> "$GITHUB_OUTPUT"
           echo "url=https://$(jq -r .swaHostname.value <<<"$out")" >> "$GITHUB_OUTPUT"
+          echo "cosmos=$(jq -r .cosmosAccount.value <<<"$out")" >> "$GITHUB_OUTPUT"
+
+      # El catálogo vive en data/catalog.json: cada despliegue lo sincroniza con la base de datos del ambiente.
+      # La clave se pide en el momento con la identidad OIDC y se enmascara; no se guarda en GitHub.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Sincronizar catálogo
+        run: |
+          npm ci --no-audit --no-fund
+          key=$(az cosmosdb keys list -n "${{ steps.infra.outputs.cosmos }}" -g "$RESOURCE_GROUP" --query primaryMasterKey -o tsv)
+          echo "::add-mask::$key"
+          COSMOS_ENDPOINT=$(az cosmosdb show -n "${{ steps.infra.outputs.cosmos }}" -g "$RESOURCE_GROUP" --query documentEndpoint -o tsv) \
+          COSMOS_KEY="$key" \
+          COSMOS_DATABASE="panaderia-${{ inputs.environment }}" \
+            node scripts/seed-catalog.js
 
       # El token de despliegue se pide en el momento con la identidad OIDC: no se guarda en GitHub.
       - name: Obtener token de despliegue

@@ -9,8 +9,8 @@
 | Lint y pruebas | PR y push a `main` | ESLint + pruebas unitarias (`node:test`) | Bloquea el merge y el despliegue |
 | Validación de IaC | PR y push a `main` | Compila Bicep + Checkov (informativo) | Bloquea si Bicep no compila |
 | CodeQL | PR, push y semanal | Análisis de seguridad del código | Reporta en Security |
-| Desplegar dev | Push a `main` | Bicep (dev) → app → smoke test | Rollback de dev; prod no se despliega |
-| Desplegar prod | Tras dev, con aprobación | Bicep (prod) → app → smoke test | Rollback de prod |
+| Desplegar dev | Push a `main` | Bicep (dev) → catálogo → app → smoke test | Rollback de dev; prod no se despliega |
+| Desplegar prod | Tras dev, con aprobación | Bicep (prod) → catálogo → app → smoke test | Rollback de prod |
 
 ## Ambientes
 
@@ -33,6 +33,17 @@ prueba puede escribir en los datos de producción.
   (Las managed functions no soportan identidad administrada; en producción se usaría una Function App propia
   con identidad administrada y Key Vault. Ver ADR-003.)
 
+## Catálogo
+
+Los productos viven en `data/catalog.json`. En cada despliegue, `scripts/seed-catalog.js` valida ese archivo y lo
+sincroniza con el contenedor `products` del ambiente: crea o actualiza cada producto y borra los que ya no están.
+Así un cambio de precio o de producto entra por pull request, pasa por las pruebas y llega a dev y a prod sin pasos a
+mano (es el cambio de la demo). La clave de Cosmos DB se pide en ese momento con la identidad OIDC y se enmascara.
+
+El rollback vuelve a desplegar el código anterior pero no el catálogo anterior: los datos quedan en la última versión
+sincronizada. Para el MVP es aceptable (el formato de los productos no cambia); si cambiara, el rollback también
+tendría que volver a sincronizar el catálogo del commit bueno.
+
 ## Rollback
 
 > Estado: implementado en `deploy.yml`, **pendiente de prueba** con un commit que rompa `/api/health` en dev.
@@ -45,7 +56,9 @@ prueba puede escribir en los datos de producción.
 ## Smoke test
 
 `scripts/smoke.sh` comprueba que el sitio sirve exactamente el commit desplegado (`/version.json`), que la página
-principal responde y que `/api/health` devuelve `ok`.
+principal responde, que `/api/health` devuelve `ok`, que `/api/products` devuelve productos (lee de Cosmos DB) y
+que `POST /api/orders` rechaza un pedido inválido con 400. Se usa un pedido inválido a propósito para no crear
+pedidos reales en producción en cada despliegue.
 
 ## Pendiente
 

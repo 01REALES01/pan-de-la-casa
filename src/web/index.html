@@ -1,32 +1,158 @@
 <!doctype html>
-<html lang="es">
+<html lang="es-CO">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Pan de la Casa</title>
+  <title>Pan de la Casa · Pide antes, recoge sin fila</title>
+  <meta name="description" content="Pandebono, almojábana, masa madre y más. Haz tu pedido en línea y recógelo a la hora que quieras.">
+  <meta name="theme-color" content="#f3f6f7">
+  <link rel="preload" href="/fonts/archivo-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/kalam-700-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-  <header class="hero">
-    <h1>Pan de la Casa</h1>
-    <p>Pide en línea y recoge a la hora que quieras.</p>
+  <a class="skip" href="#catalogo">Saltar al catálogo</a>
+
+  <header class="masthead">
+    <div class="wrap">
+      <h1 class="brand">Pan de la Casa</h1>
+      <p class="lede">Pide antes, recoge sin fila.</p>
+      <p class="hours">Recogida todos los días de 7:00 a. m. a 7:00 p. m. · Pagas en la tienda</p>
+    </div>
   </header>
 
-  <main>
-    <section class="card" aria-live="polite">
-      <h2>Estado del sistema</h2>
-      <dl>
-        <dt>Ambiente</dt><dd id="env">…</dd>
-        <dt>API</dt><dd id="api">…</dd>
-        <dt>Base de datos</dt><dd id="db">…</dd>
-      </dl>
-    </section>
-    <p class="note">El catálogo y los pedidos llegan en la siguiente versión.</p>
-  </main>
+  <nav class="cats" aria-label="Categorías">
+    <div class="wrap">
+      <ul class="cats-list" id="cat-tabs"></ul>
+    </div>
+  </nav>
 
-  <footer>
-    Versión <code id="version">…</code>
+  <div class="layout wrap">
+    <main id="catalogo" class="catalog" aria-busy="true" tabindex="-1">
+      <div class="skeleton" aria-hidden="true">
+        <div class="sk-row"><span class="sk-photo"></span><span class="sk-lines"></span></div>
+        <div class="sk-row"><span class="sk-photo"></span><span class="sk-lines"></span></div>
+        <div class="sk-row"><span class="sk-photo"></span><span class="sk-lines"></span></div>
+      </div>
+    </main>
+    <p class="visually-hidden" role="status" id="catalog-status">Cargando el catálogo…</p>
+
+    <aside id="pedido" class="order" aria-labelledby="order-title" tabindex="-1">
+      <div class="order-card">
+        <div id="order-flow">
+          <h2 id="order-title" class="order-title">Tu pedido</h2>
+          <p id="cart-empty" class="cart-empty">Todavía no has agregado nada. Elige tus panes en el catálogo.</p>
+          <ul id="cart-list" class="cart-list"></ul>
+          <p class="cart-total" id="cart-total-row" hidden>
+            <span>Total</span>
+            <strong id="cart-total">$0</strong>
+          </p>
+
+          <form id="order-form" class="order-form" novalidate hidden>
+            <h3 class="form-title">¿A nombre de quién y cuándo?</h3>
+
+            <div class="field">
+              <label for="f-name">Nombre</label>
+              <input id="f-name" name="customerName" autocomplete="name" maxlength="80" required
+                     aria-describedby="e-name">
+              <p class="field-error" id="e-name" hidden></p>
+            </div>
+
+            <div class="field">
+              <label for="f-phone">Celular</label>
+              <input id="f-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="20"
+                     placeholder="300 123 4567" required aria-describedby="h-phone e-phone">
+              <p class="field-hint" id="h-phone">Solo para avisarte si hay algún cambio.</p>
+              <p class="field-error" id="e-phone" hidden></p>
+            </div>
+
+            <div class="field-pair">
+              <div class="field">
+                <label for="f-day">Día</label>
+                <select id="f-day" name="day" required aria-describedby="e-day"></select>
+                <p class="field-error" id="e-day" hidden></p>
+              </div>
+              <div class="field">
+                <label for="f-time">Hora</label>
+                <select id="f-time" name="time" required aria-describedby="e-time"></select>
+                <p class="field-error" id="e-time" hidden></p>
+              </div>
+            </div>
+
+            <div class="form-errors" id="form-errors" role="alert" hidden></div>
+
+            <button class="btn btn-primary btn-block" type="submit" id="submit">
+              <span class="btn-label">Hacer pedido</span>
+            </button>
+            <p class="pay-note">No cobramos en línea: pagas cuando recoges.</p>
+          </form>
+        </div>
+
+        <section id="confirmation" class="confirmation" hidden aria-labelledby="conf-title" tabindex="-1">
+          <h2 id="conf-title" class="order-title">Pedido recibido</h2>
+          <p class="conf-lede">Di este código en la caja:</p>
+          <p class="tag tag-code" id="conf-code"></p>
+          <p class="conf-when" id="conf-when"></p>
+          <ul class="cart-list cart-list-static" id="conf-items"></ul>
+          <p class="cart-total"><span>Total a pagar en la tienda</span><strong id="conf-total"></strong></p>
+          <button class="btn btn-secondary btn-block" type="button" id="new-order">Hacer otro pedido</button>
+        </section>
+      </div>
+    </aside>
+  </div>
+
+  <div class="bar" id="bar" hidden>
+    <div class="bar-inner">
+      <p class="bar-summary"><span id="bar-count"></span><strong id="bar-total"></strong></p>
+      <a class="btn btn-primary" href="#pedido" id="bar-cta">Revisar pedido</a>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="wrap">
+      <p>Pan de la Casa es un caso de estudio académico: los productos y precios son ilustrativos.</p>
+      <p>
+        Fotos de Wikimedia Commons ·
+        <a href="https://github.com/01REALES01/pan-de-la-casa/blob/main/docs/creditos-fotos.md">créditos y licencias</a>
+      </p>
+      <p class="footer-version">Versión <code id="version">local</code> <span id="env"></span></p>
+    </div>
   </footer>
+
+  <template id="tpl-product">
+    <article class="product">
+      <div class="media">
+        <img class="photo" width="800" height="600" loading="lazy" decoding="async" alt="">
+        <p class="tag tag-price"><span class="visually-hidden">Precio: </span><span class="price"></span></p>
+      </div>
+      <div class="info">
+        <h3 class="name"></h3>
+        <p class="unit"></p>
+        <p class="desc"></p>
+        <div class="control">
+          <button class="btn btn-add" type="button">Agregar</button>
+          <div class="stepper" hidden>
+            <button class="step step-dec" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg>
+            </button>
+            <output class="qty" aria-live="polite">0</output>
+            <button class="step step-inc" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </article>
+  </template>
+
+  <template id="tpl-cart-item">
+    <li class="cart-item">
+      <span class="ci-qty"></span>
+      <span class="ci-name"></span>
+      <span class="ci-sub"></span>
+    </li>
+  </template>
 
   <script src="/app.js"></script>
 </body>

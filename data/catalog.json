@@ -1,0 +1,101 @@
+[
+  {
+    "id": "pandebono",
+    "name": "Pandebono",
+    "category": "amasijos",
+    "price": 2500,
+    "unit": "unidad",
+    "description": "De almidón de yuca y queso costeño, recién salido del horno.",
+    "image": "/img/pandebono.jpg",
+    "available": true,
+    "sort": 1
+  },
+  {
+    "id": "almojabana",
+    "name": "Almojábana",
+    "category": "amasijos",
+    "price": 2500,
+    "unit": "unidad",
+    "description": "Suave, de harina de maíz y cuajada.",
+    "image": "/img/almojabana.jpg",
+    "available": true,
+    "sort": 2
+  },
+  {
+    "id": "bunuelo",
+    "name": "Buñuelo",
+    "category": "amasijos",
+    "price": 2200,
+    "unit": "unidad",
+    "description": "Redondo y dorado, crocante por fuera y esponjoso por dentro.",
+    "image": "/img/bunuelo.jpg",
+    "available": true,
+    "sort": 3
+  },
+  {
+    "id": "masa-madre",
+    "name": "Pan de masa madre",
+    "category": "panes",
+    "price": 16000,
+    "unit": "hogaza de 800 g",
+    "description": "Fermentación lenta de 24 horas, corteza gruesa y miga abierta.",
+    "image": "/img/masa-madre.jpg",
+    "available": true,
+    "sort": 1
+  },
+  {
+    "id": "baguette",
+    "name": "Baguette",
+    "category": "panes",
+    "price": 6500,
+    "unit": "unidad de 250 g",
+    "description": "Corteza crujiente y miga ligera, horneada cada mañana.",
+    "image": "/img/baguette.jpg",
+    "available": true,
+    "sort": 2
+  },
+  {
+    "id": "focaccia",
+    "name": "Focaccia",
+    "category": "panes",
+    "price": 12000,
+    "unit": "pieza para 4",
+    "description": "Con aceite de oliva, queso y hierbas.",
+    "image": "/img/focaccia.jpg",
+    "available": true,
+    "sort": 3
+  },
+  {
+    "id": "roscon",
+    "name": "Roscón de bocadillo",
+    "category": "dulces",
+    "price": 3800,
+    "unit": "unidad",
+    "description": "Pan dulce relleno de bocadillo de guayaba, con azúcar por encima.",
+    "image": "/img/roscon.jpg",
+    "available": true,
+    "sort": 1
+  },
+  {
+    "id": "croissant",
+    "name": "Croissant",
+    "category": "dulces",
+    "price": 5500,
+    "unit": "unidad",
+    "description": "Hojaldre de mantequilla, en capas.",
+    "image": "/img/croissant.jpg",
+    "available": true,
+    "sort": 2
+  },
+  {
+    "id": "pan-chocolate",
+    "name": "Pan de chocolate",
+    "category": "dulces",
+    "price": 6500,
+    "unit": "unidad",
+    "description": "Hojaldre de mantequilla con dos barras de chocolate.",
+    "image": "/img/pain-chocolat.jpg",
+    "available": true,
+    "sort": 3
+  }
+]

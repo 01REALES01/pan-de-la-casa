@@ -8,6 +8,7 @@
     "node": ">=20"
   },
   "dependencies": {
+    "@azure/cosmos": "^4.10.2",
     "@azure/functions": "^4.5.0"
   }
 }
