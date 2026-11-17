@@ -46,7 +46,30 @@ tendría que volver a sincronizar el catálogo del commit bueno.
 
 ## Rollback
 
-> Estado: implementado en `deploy.yml`, **pendiente de prueba** con un commit que rompa `/api/health` en dev.
+> Estado: **probado el 17 de noviembre de 2026** en dev (ejecución
+> [44172753038](https://github.com/01REALES01/pan-de-la-casa/actions/runs/44172753038)).
+
+**Prueba.** El PR #3 cambió a propósito la ruta de `/api/health` (las pruebas unitarias pasan, así que el pipeline
+desplegó). Resultado, con la hora de los logs (UTC):
+
+| Hora | Qué pasó |
+|---|---|
+| 20:48:47 | Empieza el smoke test: la versión nueva (`ea41854`) ya se sirve y la página responde |
+| 20:48:47–20:50:47 | `/api/health` no responde `ok` en 20 intentos (6 s entre cada uno); el smoke test falla |
+| — | El pipeline busca la última ejecución exitosa en `main`: `83a2102` |
+| — | Vuelve a desplegar `83a2102` con `"rollback": true` en `version.json` |
+| 20:51:33 | El smoke test de la versión buena pasa: health, catálogo (9 productos) y validación de pedidos |
+
+Dev quedó sano en **menos de 3 minutos** desde que empezó el smoke test, sin intervención manual, y **prod no se
+desplegó** (el job quedó en "skipped"). La ejecución queda en rojo para que se vea. El cambio se revirtió en el PR
+siguiente.
+
+![Ejecución con el despliegue a dev fallido y prod sin desplegar](evidencias/rollback-ejecucion.png)
+
+![Pasos del job de dev: el smoke test falla y el rollback se verifica](evidencias/rollback-pasos.png)
+
+**Cómo funciona:**
+
 
 1. **Automático:** si el smoke test falla, el pipeline busca el commit de la última ejecución exitosa de `ci-cd.yml`
    en `main`, lo vuelve a desplegar y verifica con otro smoke test. La ejecución queda en rojo para que se vea.
@@ -63,6 +86,6 @@ pedidos reales en producción en cada despliegue.
 ## Pendiente
 
 - [ ] Medir la duración total del pipeline (la demo dura 5 minutos). Primera medición: CI + dev ≈ 3 min.
-- [ ] Probar el rollback automático en dev y guardar la captura.
+- [x] Probar el rollback automático en dev y guardar la captura (17 nov, ver arriba).
 - [ ] Justificar los hallazgos de Checkov aceptados.
-- [ ] Capturas de una ejecución bloqueada por pruebas y de un rollback.
+- [ ] Captura de una ejecución bloqueada por pruebas (la del rollback ya está).
