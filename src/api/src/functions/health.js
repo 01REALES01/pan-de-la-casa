@@ -7,7 +7,7 @@ const { buildHealth } = require('../lib/health');
 app.http('health', {
   methods: ['GET'],
   authLevel: 'anonymous',
-  route: 'health',
+  route: 'health-roto', // PRUEBA DE ROLLBACK: rompe /api/health a propósito; se revierte enseguida
   handler: async () => ({
     status: 200,
     jsonBody: buildHealth(),
