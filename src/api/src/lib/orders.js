@@ -86,10 +86,9 @@ function validateOrder(order, now = new Date()) {
 // Código corto para que el cliente lo diga en la tienda. Sin 0/O ni 1/I para evitar confusiones.
 const CODE_ALPHABET = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
 
-function orderCode(randomBytes = crypto.randomBytes) {
-  const bytes = randomBytes(5);
+function orderCode() {
   let code = '';
-  for (const b of bytes) code += CODE_ALPHABET[b % CODE_ALPHABET.length];
+  for (let i = 0; i < 5; i++) code += CODE_ALPHABET[crypto.randomInt(CODE_ALPHABET.length)];
   return code;
 }
 
