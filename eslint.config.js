@@ -7,7 +7,7 @@ module.exports = [
   { ignores: ['node_modules/**', 'src/api/node_modules/**'] },
   js.configs.recommended,
   {
-    files: ['src/api/**/*.js', 'tests/**/*.js', 'eslint.config.js'],
+    files: ['src/api/**/*.js', 'tests/**/*.js', 'scripts/**/*.js', 'eslint.config.js'],
     languageOptions: { sourceType: 'commonjs', globals: globals.node },
   },
   {

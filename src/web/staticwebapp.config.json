@@ -4,12 +4,20 @@
   },
   "navigationFallback": {
     "rewrite": "/index.html",
-    "exclude": ["/api/*", "/*.{css,js,json,png,jpg,svg,ico}"]
+    "exclude": ["/api/*", "/img/*", "/fonts/*", "/*.{css,js,json,png,jpg,svg,ico,woff2}"]
   },
   "routes": [
     {
       "route": "/version.json",
       "headers": { "Cache-Control": "no-store" }
+    },
+    {
+      "route": "/img/*",
+      "headers": { "Cache-Control": "public, max-age=604800" }
+    },
+    {
+      "route": "/fonts/*",
+      "headers": { "Cache-Control": "public, max-age=31536000, immutable" }
     }
   ],
   "globalHeaders": {
