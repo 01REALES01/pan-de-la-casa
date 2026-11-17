@@ -51,7 +51,7 @@ codifica la categoría (pestaña, título y precio).
 
 - Celular (< 640 px): productos en fila (foto cuadrada a la izquierda), pedido debajo del catálogo.
 - 640–959 px: productos en tarjetas de dos columnas (foto 4:3).
-- ≥ 960 px: catálogo a la izquierda y pedido fijo de 360 px a la derecha.
+- ≥ 960 px: catálogo a la izquierda y pedido fijo de 360 px a la derecha; desde 1100 px, tres columnas de tarjetas.
 
 ## Movimiento
 

@@ -241,6 +241,8 @@ async function loadCatalog() {
 // ---------- Carrito ----------
 
 function changeQty(id, delta) {
+  // Agregar algo con una confirmación en pantalla empieza un pedido nuevo.
+  if (delta > 0 && !$('confirmation').hidden) closeConfirmation();
   const before = state.cart.get(id) || 0;
   const qty = Math.max(0, Math.min(MAX_QTY, before + delta));
   if (qty === 0) state.cart.delete(id);
@@ -458,13 +460,17 @@ function showConfirmation(order, { scroll = true } = {}) {
   }
 }
 
-function newOrder() {
+function closeConfirmation() {
   storageSet(LAST_ORDER_KEY, null);
   $('confirmation').hidden = true;
   $('order-flow').hidden = false;
   $('order-form').reset();
   clearErrors();
   fillDays();
+}
+
+function newOrder() {
+  closeConfirmation();
   renderCart();
   $('catalogo').scrollIntoView({ behavior: 'smooth' });
   $('catalogo').focus({ preventScroll: true });

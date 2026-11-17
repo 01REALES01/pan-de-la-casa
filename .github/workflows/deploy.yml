@@ -130,4 +130,5 @@ jobs:
 
       - name: Verificar rollback
         if: failure() && steps.good.outputs.sha != ''
-        run: bash scripts/smoke.sh "${{ steps.infra.outputs.url }}" "${{ steps.good.outputs.sha }}"
+        # Se usa el smoke test de la versión buena: el actual puede verificar endpoints que esa versión no tiene.
+        run: bash rollback/scripts/smoke.sh "${{ steps.infra.outputs.url }}" "${{ steps.good.outputs.sha }}"

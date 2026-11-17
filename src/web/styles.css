@@ -885,6 +885,12 @@ a:hover {
   }
 }
 
+@media (min-width: 1100px) {
+  .products {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
