@@ -45,20 +45,39 @@ con el pipeline, como el resto de la infraestructura.
 
 Con esta decisión:
 
-- **RPO:** segundos (se puede elegir el instante exacto antes del error), muy por debajo de las 24 h exigidas.
-- **RTO:** restaurar una cuenta con el volumen de este proyecto (KB o pocos MB) toma minutos. Con el reapuntado de la
-  aplicación, el total queda dentro de las 4 h. El procedimiento está en el HLD §5.
+- **RPO:** Cosmos DB copia cada cambio al respaldo de forma asíncrona, en menos de 100 segundos. En el peor caso se
+  pierden unos 2 minutos de pedidos, muy por debajo de las 24 h exigidas.
+- **RTO:** una restauración completa crea una cuenta nueva y tiene un tiempo fijo de aprovisionamiento que no depende
+  del tamaño de los datos. El objetivo es quedar dentro de las 4 h; el tiempo real se mide con un simulacro de
+  restauración y se registra en `docs/despliegue.md`.
+
+### Procedimiento de restauración
+
+El pipeline siempre apunta a la cuenta original (su nombre es fijo en Bicep) y en cada despliegue recrea
+`panaderia-<ambiente>`, `products` y `orders`. Por eso **los datos vuelven a la cuenta original** y no se reapuntan las
+apps a mano: el siguiente despliegue desharía ese cambio.
+
+1. **Congelar despliegues:** no hacer merge a `main` hasta terminar. Un despliegue recrearía los contenedores vacíos y
+   ocuparía los nombres que se quieren restaurar.
+2. **Si se borró una base o un contenedor:** restaurarlo en la misma cuenta, al instante anterior al borrado
+   (`az cosmosdb sql database restore` o `az cosmosdb sql container restore`). Las apps no cambian.
+3. **Si se borraron o dañaron pedidos** (los contenedores siguen existiendo): restaurar la cuenta a una cuenta temporal,
+   al instante anterior al error (`az cosmosdb restore`), copiar los documentos de `orders` de vuelta a la cuenta
+   original y borrar la cuenta temporal. El catálogo no hace falta: el pipeline lo recarga desde `data/catalog.json`.
+4. Verificar con el smoke test y reanudar los despliegues.
 
 ## Consecuencias
 
 - **Costo:** USD 0 al mes por el respaldo. Una restauración de los datos actuales (menos de 1 MB) cuesta menos de un
-  centavo.
-- **No hay vuelta atrás** al modo periódico. Lo aceptamos porque el modo continuo es superior en todo lo que nos
-  importa.
-- **Una restauración completa crea una cuenta nueva.** La suscripción solo admite una cuenta con free tier, así que
-  mientras coexistan las dos, la nueva cobra su throughput a precio normal. Después de restaurar hay que reapuntar las
-  apps (`COSMOS_ENDPOINT` y la clave) o copiar los datos de vuelta, y luego borrar la cuenta sobrante.
-- **Las bases o contenedores borrados por error se restauran en la misma cuenta**, sin crear otra ni cambiar la
-  configuración de las apps.
-- El respaldo vive en la misma región (Central US). Una caída regional completa no está cubierta: es un riesgo
-  aceptado para una PyME con un solo local, documentado en el HLD §7.
+  centavo. La cuenta temporal del paso 3 no tiene free tier (la suscripción solo admite una cuenta con free tier), así
+  que cobra su throughput a precio normal mientras exista; por eso se borra apenas termina la copia.
+- **No hay vuelta atrás** al modo periódico, y Azure rechaza cualquier despliegue que lo intente. Revertir este cambio
+  con `git revert` bloquearía el pipeline: si alguna vez hubiera que deshacer el PR, se conserva el bloque
+  `backupPolicy`. Lo aceptamos porque el modo continuo es superior en todo lo que nos importa.
+- **El cambio se aplica con el despliegue a dev**, antes de la aprobación de prod, porque dev y prod comparten la
+  cuenta de Cosmos DB. La aprobación de prod no lo frena: la decisión se toma al aprobar este PR.
+- **La migración corre en segundo plano.** Mientras no termine, Azure puede rechazar otro despliegue sobre la cuenta.
+  Hay que aprobar prod solo cuando la migración figure como completada
+  (`az cosmosdb show --query backupPolicy.migrationState`).
+- El respaldo vive en la misma región (Central US). Una caída regional completa no está cubierta: es un riesgo aceptado
+  para una PyME con un solo local, que se registra en la tabla de riesgos del HLD.

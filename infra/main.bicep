@@ -70,7 +70,8 @@ resource cosmos 'Microsoft.DocumentDB/databaseAccounts@2024-05-15' = {
     backupPolicy: {
       // ADR-004: backup continuo de 7 días. Restauración autoservicio a cualquier segundo de la última semana
       // (sin ticket de soporte), sin costo de almacenamiento; cada restauración cuesta USD 0,15/GB.
-      // El cambio desde 'Periodic' es irreversible.
+      // El cambio desde 'Periodic' es irreversible: NO volver a 'Periodic' (ni con git revert); Azure rechaza
+      // el despliegue y el pipeline queda bloqueado.
       type: 'Continuous'
       continuousModeProperties: {
         tier: 'Continuous7Days'
