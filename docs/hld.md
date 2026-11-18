@@ -86,7 +86,7 @@ Los supuestos de negocio y de tráfico están en `docs/supuestos.md`. Los que ya
 |---|---|---|
 | Horario comercial | 07:00–19:00, todos los días (12 h) | Regla de negocio del pedido |
 | Productos en el catálogo | 9, en 3 categorías | `data/catalog.json` |
-| Tamaño de un pedido | ~0,5 KB (medido con un pedido de 3 productos) | Medición en dev, 18 nov |
+| Tamaño de un pedido | Menos de 1 KB (0,5 KB medido con un pedido de 3 productos) | Medición en dev, 18 nov |
 | Costo de guardar un pedido | 12,76 RU | Medición en dev, 18 nov |
 | Costo de leer el catálogo | 2,5 RU, una vez cada 30 s por instancia | Medición en dev, 18 nov |
 | Administradores | 1 (el dueño) | Caso de negocio |
@@ -101,7 +101,7 @@ Los supuestos de negocio y de tráfico están en `docs/supuestos.md`. Los que ya
 | Capa | Servicio | Configuración | Por qué |
 |---|---|---|---|
 | Presentación | Azure Static Web Apps **Standard** | HTML, CSS y JS sin build; HTTPS y dominio incluidos; ruta `/api` hacia la API | SLA de 99,95 %; permite enlazar una Function App propia (ADR-001) |
-| Aplicación | Azure Functions (Function App propia), Node.js 22 | Plan de consumo (Flex Consumption), enlazada a la Static Web App | Escala sola y no cobra sin tráfico; admite identidad administrada (ADR-001, ADR-003) |
+| Aplicación | Azure Functions (Function App propia), Node.js 22 | Plan de consumo (Consumption), enlazada a la Static Web App | Escala sola y no cobra sin tráfico; admite identidad administrada (ADR-001, ADR-003) |
 | Datos | Azure Cosmos DB for NoSQL, free tier | Contenedores `products` (`/category`) y `orders` (`/pickupDate`); 1000 RU/s y 25 GB gratis | Documentos JSON sin esquema; respaldo continuo (ADR-002, ADR-004) |
 | Archivos | Azure Blob Storage | Fotos del catálogo, servidas por HTTPS | El panel sube fotos sin redesplegar la app |
 | Identidad y secretos | Microsoft Entra ID · identidad administrada · Key Vault | Inicio de sesión del administrador; API → Cosmos DB por RBAC; secretos restantes en Key Vault | Sin claves en la configuración (ADR-003) |
@@ -216,7 +216,7 @@ Standard. Para atender un pedido intervienen tres servicios en serie. Sus SLA, s
 | Servicio en la ruta del pedido | SLA |
 |---|---|
 | Static Web Apps (Standard) | 99,95 % |
-| Azure Functions (Flex Consumption) | 99,95 % |
+| Azure Functions (plan Consumption) | 99,95 % |
 | Cosmos DB, una región sin zonas de disponibilidad | 99,99 % |
 | **Compuesto** (0,9995 × 0,9995 × 0,9999) | **99,89 %** |
 
@@ -257,7 +257,7 @@ con el smoke test) está en ADR-004.
 | Un despliegue rompe el sitio | Rollback automático al último commit bueno. Probado el 17 nov: dev volvió sola en menos de 3 minutos y prod no se tocó (`docs/despliegue.md`). |
 | Se borran o dañan pedidos | Restaurar a un punto anterior al error (ADR-004, paso 3). |
 | Se borra una base o un contenedor | Restauración dentro de la misma cuenta (ADR-004, paso 2). |
-| Se borra el grupo de recursos | `scripts/bootstrap.sh` y el pipeline recrean la infraestructura; la cuenta de Cosmos DB borrada se restaura desde su respaldo continuo dentro de los 7 días. |
+| Se borra el grupo de recursos | `scripts/bootstrap.sh` y el pipeline recrean la infraestructura en minutos. Para los pedidos se evalúa restaurar la cuenta borrada desde su respaldo continuo, **antes** de volver a correr el pipeline (si no, el pipeline crea una cuenta vacía con el mismo nombre). No está probado. |
 
 ## 6. Observabilidad y operación
 
