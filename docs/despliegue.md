@@ -83,9 +83,25 @@ principal responde, que `/api/health` devuelve `ok`, que `/api/products` devuelv
 que `POST /api/orders` rechaza un pedido inválido con 400. Se usa un pedido inválido a propósito para no crear
 pedidos reales en producción en cada despliegue.
 
+## Hallazgos de Checkov aceptados
+
+Checkov corre en modo informativo en cada PR y en cada push. Hoy reporta 3 hallazgos, todos sobre la cuenta de Cosmos
+DB, aceptados para el MVP:
+
+| Check | Qué pide | Por qué se acepta en el MVP | Qué cambia en producción |
+|---|---|---|---|
+| CKV_AZURE_99 | Restringir el acceso a la cuenta (firewall de IP o red virtual) | Static Web Apps no ofrece integración con red virtual de salida: la API llega a Cosmos DB por Internet. El pipeline también entra desde runners de GitHub con IP variable para sincronizar el catálogo. | Se evalúa una Function App con integración de red y endpoint privado hacia Cosmos DB si el costo lo justifica. |
+| CKV_AZURE_101 | Desactivar el acceso de red público | Mismo motivo: sin acceso público, ni la API ni el pipeline podrían llegar a la base. | Igual que el anterior. |
+| CKV_AZURE_140 | Desactivar la autenticación por clave | Las managed functions no admiten identidad administrada, así que la API solo puede usar la clave (ADR-003). | La Function App propia usa identidad administrada con RBAC y la autenticación por clave se desactiva. |
+
+Compensaciones en el MVP: todo el tráfico va por TLS 1.2 como mínimo; la clave de Cosmos DB no está en el repositorio
+ni en los logs (Bicep la escribe en la configuración de cada Static Web App y el pipeline la enmascara); la escritura de
+metadatos con clave está desactivada (`disableKeyBasedMetadataWriteAccess`, por eso CKV_AZURE_132 pasa); y la
+identidad del pipeline solo tiene permisos sobre el grupo de recursos.
+
 ## Pendiente
 
 - [ ] Medir la duración total del pipeline (la demo dura 5 minutos). Primera medición: CI + dev ≈ 3 min.
 - [x] Probar el rollback automático en dev y guardar la captura (17 nov, ver arriba).
-- [ ] Justificar los hallazgos de Checkov aceptados.
+- [x] Justificar los hallazgos de Checkov aceptados (ver arriba).
 - [ ] Captura de una ejecución bloqueada por pruebas (la del rollback ya está).

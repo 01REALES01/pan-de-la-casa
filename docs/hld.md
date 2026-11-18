@@ -4,7 +4,7 @@
 > Cada sección indica su responsable. Borra estas notas al terminar.
 
 ## 1. Contexto del negocio y alcance
-<!-- Responsable: compañero. Quién es la panadería, qué problema resuelve el sistema, qué entra y qué NO entra en el alcance. -->
+<!-- Responsable: yo. Quién es la panadería, qué problema resuelve el sistema, qué entra y qué NO entra en el alcance. -->
 
 ## 2. Requisitos funcionales, no funcionales y supuestos
 <!-- Responsable: yo, a partir de docs/supuestos.md.
@@ -25,7 +25,7 @@
 <!-- Responsable: yo. Application Insights, Log Analytics, alertas, presupuesto. -->
 
 ## 7. Riesgos y mitigaciones
-<!-- Responsable: compañero. Tabla: riesgo · probabilidad · impacto · mitigación. -->
+<!-- Responsable: yo. Tabla: riesgo · probabilidad · impacto · mitigación. -->
 
 ## 8. Decisiones de arquitectura
 Ver [docs/adr/](adr/).
