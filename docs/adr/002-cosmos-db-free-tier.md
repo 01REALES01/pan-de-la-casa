@@ -52,9 +52,9 @@ respaldo con RPO 24 h y RTO 4 h; dos ambientes (dev y prod) aislados; y una regi
   para millones de pedidos.
 - **Capacidad ante el 3x:** las 400 RU/s de prod son un techo fijo. La API guarda el catálogo en caché 30 s, así que
   las visitas del pico casi no leen la base; el consumo real lo concentran las escrituras de pedidos. Si el techo se
-  alcanzara, Cosmos DB responde 429 y la API responde 503 con un mensaje para reintentar; la métrica de peticiones
-  fallidas dispara la alerta. Si hiciera falta, prod puede subir a 600 RU/s (parámetro `databaseThroughput`) y seguir dentro de los 1000 gratuitos
-  (400 de dev + 600 de prod).
+  alcanzara, Cosmos DB responde 429 y la API responde 503 con un mensaje para reintentar; cualquier respuesta 5xx
+  dispara la alerta. Si hiciera falta, prod puede subir a 600 RU/s (parámetro `databaseThroughput`) y seguir dentro
+  de los 1000 gratuitos (400 de dev + 600 de prod).
 - **Una sola cuenta para dos ambientes:** los cambios de configuración de la cuenta (como el respaldo) afectan a dev y
   prod a la vez y se aplican con el despliegue a dev.
 - **Autenticación por clave en el MVP:** las managed functions no tienen identidad administrada, así que la API usa la
