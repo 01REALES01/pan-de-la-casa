@@ -89,10 +89,13 @@ Los supuestos de negocio y de tráfico están en `docs/supuestos.md`. Los que ya
 | Tamaño de un pedido | Menos de 1 KB (0,5 KB medido con un pedido de 3 productos) | Medición en dev, 18 nov |
 | Costo de guardar un pedido | 12,76 RU | Medición en dev, 18 nov |
 | Costo de leer el catálogo | 2,5 RU, una vez cada 30 s por instancia | Medición en dev, 18 nov |
-| Administradores | 1 (el dueño) | Caso de negocio |
+| Administradores del panel | 2 (la dueña y el encargado de turno) | `docs/supuestos.md` |
 | Región | Central US | Política de la suscripción (ADR-001) |
-| Visitas y pedidos por día, entre semana y fin de semana | **[pendiente: `docs/supuestos.md`]** | Supuestos del equipo |
-| Crecimiento en 12 meses | **[pendiente: `docs/supuestos.md`]** | Supuestos del equipo |
+| Visitas por día | 150 entre semana · 450 el fin de semana (3x) | `docs/supuestos.md` |
+| Pedidos por día | 30 entre semana · 90 el fin de semana (conversión del 20 %) | `docs/supuestos.md` |
+| Volumen mensual | 6 900 visitas · 1 380 pedidos · ≈ 8 300 ejecuciones de la API | `docs/supuestos.md` |
+| Crecimiento en 12 meses | +50 %: ≈ 10 350 visitas y 2 070 pedidos al mes (base del escenario de producción) | `docs/supuestos.md` |
+| Hora pico | Sábado 07:00–09:00: ≈ 30 % de las visitas del día, ≈ 1 visita por minuto | `docs/supuestos.md` |
 
 ## 3. Arquitectura propuesta y servicios por capa
 
@@ -143,8 +146,8 @@ El MVP usa la misma forma con planes gratuitos:
 4. La API responde con el código, el total y la hora de recogida.
 
 **Capacidad.** Prod tiene 400 RU/s. Con 12,76 RU por pedido, eso alcanza para unos **31 pedidos por segundo**
-sostenidos. Un pico de 600 pedidos en una hora (más de lo que una panadería de barrio atiende) son
-600 × 12,76 / 3600 ≈ **2,1 RU/s**, el 0,5 % de la capacidad. Las lecturas del catálogo no crecen con las visitas,
+sostenidos. Un sábado de producción (+50 %) tiene unos 135 pedidos; aunque llegaran todos en la misma hora serían
+135 × 12,76 / 3600 ≈ **0,5 RU/s**, el 0,1 % de la capacidad. Las lecturas del catálogo no crecen con las visitas,
 porque cada instancia de la API lo lee como máximo una vez cada 30 s. El 3x de los fines de semana queda muy por
 debajo del techo. Si se alcanzara, la API responde 503 con un mensaje para reintentar, la alerta avisa (§6) y prod
 puede subir a 600 RU/s sin salir del free tier (ADR-002).
