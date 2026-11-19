@@ -5,6 +5,8 @@ Diseño de alto nivel de la plataforma de pedidos web de la panadería "Pan de l
 | | |
 |---|---|
 | Curso | Paradigmas de Computación en la Nube · Escuela Colombiana de Ingeniería Julio Garavito |
+| Equipo | Jean Paul Reales · Juan Diego Valderrama Gaviria |
+| Profesor | Luis Carlos Galvis |
 | Versión | 1.0 (borrador) · 18 de noviembre de 2026 |
 | Repositorio | https://github.com/01REALES01/pan-de-la-casa |
 | Sitio en producción | https://gentle-cliff-087349110.6.azurestaticapps.net |
