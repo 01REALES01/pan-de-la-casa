@@ -193,7 +193,7 @@ resource failedRequestsAlert 'Microsoft.Insights/metricAlerts@2018-03-01' = {
   location: 'global'
   tags: tags
   properties: {
-    description: 'Más de 5 peticiones fallidas (5xx) en 5 minutos.'
+    description: 'La API respondió con error de servidor (5xx) en los últimos 5 minutos.'
     severity: environment == 'prod' ? 1 : 3
     enabled: true
     scopes: [
@@ -205,12 +205,27 @@ resource failedRequestsAlert 'Microsoft.Insights/metricAlerts@2018-03-01' = {
       'odata.type': 'Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria'
       allOf: [
         {
-          name: 'failedRequests'
+          // Se cuenta por código de respuesta y no con 'requests/failed': Functions marca como exitosa toda
+          // petición que no lanza excepción, así que un 503 manejado (Cosmos DB caído o saturado con 429) no
+          // aparecería como fallida. Una excepción no manejada responde 500 y también entra aquí.
+          name: 'serverErrors'
           criterionType: 'StaticThresholdCriterion'
-          metricName: 'requests/failed'
+          metricName: 'requests/count'
           metricNamespace: 'microsoft.insights/components'
+          dimensions: [
+            {
+              name: 'request/resultCode'
+              operator: 'Include'
+              values: [
+                '500'
+                '502'
+                '503'
+                '504'
+              ]
+            }
+          ]
           operator: 'GreaterThan'
-          threshold: 5
+          threshold: 0
           timeAggregation: 'Count'
         }
       ]
