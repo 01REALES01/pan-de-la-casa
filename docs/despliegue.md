@@ -76,6 +76,40 @@ siguiente.
 2. **Manual:** en GitHub Actions, abrir una ejecución anterior exitosa y usar "Re-run all jobs", o hacer
    `git revert` del commit problemático y hacer merge.
 
+## Restauración de datos (simulacro)
+
+> Estado: **probado el 19 de noviembre de 2026** (noche, hora de Bogotá) con el procedimiento de ADR-004.
+
+**Prueba.** Se restauró la cuenta completa de Cosmos DB (dev y prod) a una cuenta temporal, se borró a propósito el
+pedido de prueba de dev (`AXZQ7`) en la cuenta original y se recuperó desde la temporal con `scripts/restore-orders.js`.
+Horas en UTC (20 nov):
+
+| Hora | Qué pasó |
+|---|---|
+| 03:14:32 | Conteo de la cuenta original: 9 productos por ambiente y 1 pedido en dev |
+| 03:14:40 | `az cosmosdb restore` a la cuenta temporal, al instante 03:13:00 |
+| 03:25:13 | La cuenta temporal queda lista: **10 min 33 s** |
+| 03:25:26 | La cuenta temporal tiene exactamente los mismos documentos que la original |
+| ≈ 03:26 | Se borra el pedido de dev en la cuenta original (quedan 0) y `restore-orders.js` lo recrea en segundos; el documento es idéntico al del respaldo |
+| — | `/api/health` de dev responde `ok`; se borra la cuenta temporal |
+
+**Resultado:** los datos volvieron en **unos 12 minutos** desde que se lanzó la restauración. El RTO exigido es 4 h:
+aun sumando la detección (la alerta llega en unos 5 minutos) y la decisión del equipo, queda muy por debajo. Con más
+datos la restauración tarda más, pero hoy la base pesa menos de 1 MB y el margen frente a 4 h es amplio.
+
+**No probado:** la restauración de una base o un contenedor borrado dentro de la misma cuenta (ADR-004, paso 2),
+porque exige borrar un contenedor real.
+
+```bash
+# 1. Restaurar a una cuenta temporal, al instante anterior al error (UTC)
+az cosmosdb restore -g rg-pandelacasa -a <cuenta-original> -n <cuenta-temporal> -l centralus -t <AAAA-MM-DDTHH:MM:SSZ>
+# 2. Copiar los pedidos de vuelta (primero con --dry-run para ver cuántos se recrean o reemplazan)
+SOURCE_ENDPOINT=... SOURCE_KEY=... TARGET_ENDPOINT=... TARGET_KEY=... \
+  COSMOS_DATABASE=panaderia-prod node scripts/restore-orders.js --dry-run
+# 3. Borrar la cuenta temporal (cobra throughput mientras exista: no tiene free tier)
+az cosmosdb delete -g rg-pandelacasa -n <cuenta-temporal> --yes
+```
+
 ## Smoke test
 
 `scripts/smoke.sh` comprueba que el sitio sirve exactamente el commit desplegado (`/version.json`), que la página
@@ -103,5 +137,6 @@ identidad del pipeline solo tiene permisos sobre el grupo de recursos.
 
 - [ ] Medir la duración total del pipeline (la demo dura 5 minutos). Primera medición: CI + dev ≈ 3 min.
 - [x] Probar el rollback automático en dev y guardar la captura (17 nov, ver arriba).
+- [x] Simulacro de restauración de datos: unos 12 minutos (19 nov, ver arriba).
 - [x] Justificar los hallazgos de Checkov aceptados (ver arriba).
 - [ ] Captura de una ejecución bloqueada por pruebas (la del rollback ya está).

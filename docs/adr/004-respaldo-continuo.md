@@ -47,9 +47,9 @@ Con esta decisión:
 
 - **RPO:** Cosmos DB copia cada cambio al respaldo de forma asíncrona, en menos de 100 segundos. En el peor caso se
   pierden unos 2 minutos de pedidos, muy por debajo de las 24 h exigidas.
-- **RTO:** una restauración completa crea una cuenta nueva y tiene un tiempo fijo de aprovisionamiento que no depende
-  del tamaño de los datos. El objetivo es quedar dentro de las 4 h; el tiempo real se mide con un simulacro de
-  restauración y se registra en `docs/despliegue.md`.
+- **RTO:** una restauración completa crea una cuenta nueva; tarda más cuanto más datos haya, pero con los datos actuales
+  (menos de 1 MB) casi todo el tiempo es crear la cuenta. **Medido en un simulacro el 19 nov: la cuenta restaurada estuvo lista en 10 min 33 s y
+  los pedidos volvieron a la cuenta original en unos 12 minutos** (detalle en `docs/despliegue.md`).
 
 ### Procedimiento de restauración
 
@@ -63,7 +63,7 @@ apps a mano: el siguiente despliegue desharía ese cambio.
    (`az cosmosdb sql database restore` o `az cosmosdb sql container restore`). Las apps no cambian.
 3. **Si se borraron o dañaron pedidos** (los contenedores siguen existiendo): restaurar la cuenta a una cuenta temporal,
    al instante anterior al error (`az cosmosdb restore`), copiar los documentos de `orders` de vuelta a la cuenta
-   original y borrar la cuenta temporal. El catálogo no hace falta: el pipeline lo recarga desde `data/catalog.json`.
+   original con `scripts/restore-orders.js` y borrar la cuenta temporal. El catálogo no hace falta: el pipeline lo recarga desde `data/catalog.json`.
 4. Verificar con el smoke test y reanudar los despliegues.
 
 ## Consecuencias
