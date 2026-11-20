@@ -252,7 +252,7 @@ con un solo local.
 | | Requisito | Diseño |
 |---|---|---|
 | **RPO** | 24 h | Cosmos DB copia cada cambio al respaldo en menos de 100 segundos: en el peor caso se pierden unos 2 minutos de pedidos. |
-| **RTO** | 4 h | Restauración autoservicio por portal o CLI, sin ticket de soporte. **Objetivo:** dentro de las 4 h. **Pendiente:** medir el tiempo real con un simulacro. |
+| **RTO** | 4 h | Restauración autoservicio por portal o CLI, sin ticket de soporte. **Medido el 19 nov:** la cuenta restaurada estuvo lista en 10 min 33 s y los pedidos volvieron en unos 12 minutos (`docs/despliegue.md`). |
 
 El procedimiento paso a paso (congelar despliegues, restaurar, copiar los pedidos a la cuenta original y verificar
 con el smoke test) está en ADR-004.
@@ -260,7 +260,7 @@ con el smoke test) está en ADR-004.
 | Escenario | Respuesta |
 |---|---|
 | Un despliegue rompe el sitio | Rollback automático al último commit bueno. Probado el 17 nov: dev volvió sola en menos de 3 minutos y prod no se tocó (`docs/despliegue.md`). |
-| Se borran o dañan pedidos | Restaurar a un punto anterior al error (ADR-004, paso 3). |
+| Se borran o dañan pedidos | Restaurar a un punto anterior al error y copiar los pedidos con `scripts/restore-orders.js` (ADR-004, paso 3). Probado el 19 nov: un pedido borrado volvió idéntico. |
 | Se borra una base o un contenedor | Restauración dentro de la misma cuenta (ADR-004, paso 2). |
 | Se borra el grupo de recursos | `scripts/bootstrap.sh` y el pipeline recrean la infraestructura en minutos. Para los pedidos se evalúa restaurar la cuenta borrada desde su respaldo continuo, **antes** de volver a correr el pipeline (si no, el pipeline crea una cuenta vacía con el mismo nombre). No está probado. |
 
