@@ -2,7 +2,8 @@
 
 | Escenario | Total mensual | Enlace compartido | Export |
 |---|---|---|---|
-| MVP | USD 0,10 | https://azure.com/e/71afe1f5b2764d418547a076492ea64b | [calculadora-mvp.xlsx](calculadora-mvp.xlsx) |
-| Producción | USD 9,39 | https://azure.com/e/30388c5cde0d476b86dc2cdb5dd594b5 | [calculadora-produccion.xlsx](calculadora-produccion.xlsx) |
+| MVP | USD 0,80 | https://azure.com/e/68c5e0470fcd49d29ddff42adbf0573f | [calculadora-mvp.xlsx](calculadora-mvp.xlsx) |
+| Producción | USD 10,05 | https://azure.com/e/9068455dc1954c3c97268f39f8f38fc4 | [calculadora-produccion.xlsx](calculadora-produccion.xlsx) |
 
-Consulta del 19/11/2026, región Central US, USD, precios de lista pay-as-you-go.
+Consulta del 20/11/2026, región Central US, USD, precios de lista pay-as-you-go. El anual es el mensual sin
+redondear × 12.
