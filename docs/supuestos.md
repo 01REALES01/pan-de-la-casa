@@ -1,7 +1,6 @@
 # Supuestos del negocio
 
-> Responsable: compañero. Estos números alimentan el HLD (§2) y la estimación de costos.
-> Cifras razonables inventadas están bien, siempre que estén escritas y justificadas.
+Estos números alimentan el HLD (§2) y la estimación de costos (`docs/costs/`).
 
 ## Tabla de supuestos
 
@@ -15,7 +14,7 @@
 | Productos en el catálogo | 9 hoy (3 categorías); hasta 30 en 12 meses | Los 9 de `data/catalog.json` (amasijos, panes, dulces). El catálogo de una panadería de barrio rara vez pasa de 30 referencias. |
 | Fotos por producto / tamaño promedio | 1 foto / ≈ 81 KB (50–130 KB, 800 × 600 px) | Las 9 fotos del MVP suman ≈ 0,73 MB. Con 30 productos serían ≈ 2,5 MB. |
 | Administradores del panel | 2 | La dueña y el encargado de turno. El panel está fuera del MVP. |
-| Tamaño promedio de un pedido (KB) | ≈ 1 KB | Documento JSON del MVP: nombre, teléfono, ítems y totales. |
+| Tamaño promedio de un pedido (KB) | ≈ 1 KB (medido en dev: 0,5 KB) | Documento JSON del MVP: nombre, teléfono, ítems y totales. |
 | Crecimiento esperado en 12 meses | +50 % en visitas y pedidos | Efecto de dar a conocer el sitio en la tienda y en redes; se usa para el escenario de producción. |
 | Región de Azure | Central US (impuesta por la suscripción) | Es la única región permitida por Azure for Students donde existe Static Web Apps. |
 
