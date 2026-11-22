@@ -7,7 +7,7 @@ Diseño de alto nivel de la plataforma de pedidos web de la panadería "Pan de l
 | Curso | Paradigmas de Computación en la Nube · Escuela Colombiana de Ingeniería Julio Garavito |
 | Equipo | Jean Paul Reales · Juan Diego Valderrama Gaviria |
 | Profesor | Luis Carlos Galvis |
-| Versión | 1.0 (borrador) · 18 de noviembre de 2026 |
+| Versión | 1.0 · 21 de noviembre de 2026 |
 | Repositorio | https://github.com/01REALES01/pan-de-la-casa |
 | Sitio en producción | https://gentle-cliff-087349110.6.azurestaticapps.net |
 
@@ -70,7 +70,7 @@ organizados por hora de recogida y prepara solo lo pedido.
 
 | Requisito | MVP | Producción | Evidencia |
 |---|---|---|---|
-| Costo ≤ USD 150/mes en producción | Planes gratuitos y free tier; tope de 1000 RU/s en Cosmos DB; presupuesto de USD 20/mes con avisos | Estimación con la calculadora oficial | `docs/costs/` |
+| Costo ≤ USD 150/mes en producción | Planes gratuitos y free tier; tope de 1000 RU/s en Cosmos DB; presupuesto de USD 20/mes con avisos | **USD 10,05/mes** (USD 120,60/año), el 6,7 % del tope; el MVP cuesta USD 0,80/mes. Dos optimizaciones FinOps ahorran USD 107,32/mes | `docs/costs/` (calculadora oficial) |
 | 99,5 % en horario comercial | Sin SLA (plan Free) | SLA compuesto de 99,89 % (§5.1) | §5.1 |
 | HTTPS | Static Web Apps solo sirve HTTPS; Cosmos DB exige TLS 1.2 | Igual | §4.1 |
 | Secretos fuera del código | OIDC sin secretos guardados; la clave de Cosmos DB la escribe Bicep en la configuración | Identidad administrada y Key Vault | ADR-003 |
@@ -108,7 +108,7 @@ Los supuestos de negocio y de tráfico están en `docs/supuestos.md`. Los que ya
 | Presentación | Azure Static Web Apps **Standard** | HTML, CSS y JS sin build; HTTPS y dominio incluidos; ruta `/api` hacia la API | SLA de 99,95 %; permite enlazar una Function App propia (ADR-001) |
 | Aplicación | Azure Functions (Function App propia), Node.js 22 | Plan de consumo (Consumption), enlazada a la Static Web App | Escala sola y no cobra sin tráfico; admite identidad administrada (ADR-001, ADR-003) |
 | Datos | Azure Cosmos DB for NoSQL, free tier | Contenedores `products` (`/category`) y `orders` (`/pickupDate`); 1000 RU/s y 25 GB gratis | Documentos JSON sin esquema; respaldo continuo (ADR-002, ADR-004) |
-| Archivos | Azure Blob Storage | Fotos del catálogo, servidas por HTTPS | El panel sube fotos sin redesplegar la app |
+| Archivos | Azure Blob Storage | Fotos del catálogo, servidas por HTTPS; la misma cuenta es el almacenamiento que exige la Function App | El panel sube fotos sin redesplegar la app |
 | Identidad y secretos | Microsoft Entra ID · identidad administrada · Key Vault | Inicio de sesión del administrador; API → Cosmos DB por RBAC; secretos restantes en Key Vault | Sin claves en la configuración (ADR-003) |
 | Observabilidad | Application Insights · Log Analytics · Azure Monitor | 30 días de retención, tope de ingesta de 1 GB/día, alerta por errores 5xx, presupuesto | §6 |
 | Entrega | GitHub Actions + Bicep | OIDC, dev → smoke test → aprobación → prod; rollback automático | `docs/despliegue.md` |
