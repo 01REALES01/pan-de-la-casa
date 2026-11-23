@@ -34,11 +34,15 @@ SUBSCRIPTION_ID=$(az account show --query id -o tsv)
 # Se filtra por principalId (no por --assignee) para no depender de consultas al directorio de Entra ID.
 if [ -z "$(az role assignment list --scope "$RG_ID" --query "[?principalId=='$PRINCIPAL_ID' && roleDefinitionName=='Contributor'].id | [0]" -o tsv)" ]; then
   # La identidad recién creada puede tardar en propagarse.
+  assigned=0
   for i in 1 2 3 4 5 6; do
-    az role assignment create --assignee-object-id "$PRINCIPAL_ID" --assignee-principal-type ServicePrincipal \
-      --role Contributor --scope "$RG_ID" -o none && break
+    if az role assignment create --assignee-object-id "$PRINCIPAL_ID" --assignee-principal-type ServicePrincipal \
+      --role Contributor --scope "$RG_ID" -o none; then
+      assigned=1; break
+    fi
     echo "   reintentando asignación de rol ($i)..."; sleep 10
   done
+  [ "$assigned" = 1 ] || { echo "ERROR: no se pudo dar Contributor a $IDENTITY sobre $RG" >&2; exit 1; }
 fi
 
 echo "==> 3/5 Credenciales federadas OIDC para $REPO"
@@ -65,9 +69,12 @@ done
 
 echo "==> 4/5 Environments, secretos y variables en GitHub"
 ME_ID=$(gh api user --jq .id)
-gh api -X PUT "repos/$REPO/environments/dev" --silent
-# prod requiere aprobación manual de un revisor antes de desplegar.
-printf '{"reviewers":[{"type":"User","id":%s}]}' "$ME_ID" \
+# Los dos environments solo aceptan ramas protegidas (main): otra rama no puede pedir un token OIDC de dev o prod.
+# Requiere que main tenga protección de rama (se configura en GitHub: PR obligatorio y checks de CI).
+BRANCHES='"deployment_branch_policy":{"protected_branches":true,"custom_branch_policies":false}'
+echo "{$BRANCHES}" | gh api -X PUT "repos/$REPO/environments/dev" --input - --silent
+# prod además requiere aprobación manual de un revisor antes de desplegar.
+printf '{"reviewers":[{"type":"User","id":%s}],%s}' "$ME_ID" "$BRANCHES" \
   | gh api -X PUT "repos/$REPO/environments/prod" --input - --silent
 
 gh secret set AZURE_CLIENT_ID       -R "$REPO" -b "$CLIENT_ID"

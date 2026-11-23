@@ -51,7 +51,9 @@ test('POST /api/orders registra el pedido y responde con código y total', async
   const res = await api.createOrder(order);
   assert.equal(res.status, 201);
   assert.match(res.jsonBody.code, /^[2-9A-HJ-NP-Z]{5}$/);
-  assert.equal(res.jsonBody.total, 6 * 2500 + 6500);
+  // El total sale de los precios del catálogo: cambiar un precio en data/catalog.json no rompe esta prueba.
+  const price = (id) => catalog.find((p) => p.id === id).price;
+  assert.equal(res.jsonBody.total, 6 * price('pandebono') + price('baguette'));
   assert.equal(store.orders.length, 1);
   assert.equal(store.orders[0].pickupDate, '2026-11-11');
 });
