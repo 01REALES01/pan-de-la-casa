@@ -7,7 +7,7 @@ Diseño de alto nivel de la plataforma de pedidos web de la panadería "Pan de l
 | Curso | Paradigmas de Computación en la Nube · Escuela Colombiana de Ingeniería Julio Garavito |
 | Equipo | Jean Paul Reales · Juan Diego Valderrama Gaviria |
 | Profesor | Luis Carlos Galvis |
-| Versión | 1.0 · 21 de noviembre de 2026 |
+| Versión | 1.1 · 23 de noviembre de 2026 |
 | Repositorio | https://github.com/01REALES01/pan-de-la-casa |
 | Sitio en producción | https://gentle-cliff-087349110.6.azurestaticapps.net |
 
@@ -178,8 +178,8 @@ del fin de semana.
 |---|---|---|
 | Cliente | Anónimo | Leer el catálogo y crear pedidos |
 | Administrador (planeado) | Microsoft Entra ID con la autenticación de Static Web Apps; rol `admin` | Rutas `/admin` y `/api/admin/*`, restringidas por rol en `staticwebapp.config.json` |
-| Pipeline (GitHub Actions) | OIDC: token de corta duración, aceptado solo desde los environments `dev` y `prod` del repositorio | Contributor **solo** sobre `rg-pandelacasa` |
-| API → Cosmos DB, MVP | Clave de la cuenta en la configuración de la Static Web App, escrita por Bicep | Leer y escribir en su base |
+| Pipeline (GitHub Actions) | OIDC: token de corta duración, aceptado solo desde los environments `dev` y `prod` del repositorio, que solo aceptan despliegues desde `main` | Contributor **solo** sobre `rg-pandelacasa` |
+| API → Cosmos DB, MVP | Clave maestra de la cuenta en la configuración de cada Static Web App, escrita por Bicep | Leer y escribir en **las dos** bases (dev y prod): la clave es de la cuenta, no de una base (riesgo R5) |
 | API → Cosmos DB, producción | Identidad administrada de la Function App con un rol de datos de Cosmos DB | Solo los contenedores de su base; la autenticación por clave queda desactivada |
 
 ### 4.3 Secretos y mínimo privilegio
@@ -189,8 +189,9 @@ del fin de semana.
   enmascaran en los logs.
 - El repositorio y los logs de Actions son públicos. Por eso el correo de alertas va como secreto de GitHub
   (`ALERT_EMAIL`) y ningún archivo contiene IDs de suscripción ni de tenant.
-- La rama `main` está protegida: solo entra por pull request con las pruebas y la validación de IaC en verde, y el
-  despliegue a prod exige aprobación manual.
+- La rama `main` está protegida: solo entra por pull request con las pruebas y la validación de IaC en verde, sin
+  excepción para los administradores, y el despliegue a prod exige aprobación manual. Los environments `dev` y `prod`
+  solo aceptan despliegues desde `main`.
 - Riesgo aceptado en el MVP: Checkov reporta 3 hallazgos sobre Cosmos DB (acceso público y autenticación por clave).
   Están justificados en `docs/despliegue.md`, con lo que cambia en producción.
 
@@ -316,7 +317,7 @@ Probabilidad e impacto: A = alto, M = medio, B = bajo.
 | R2 | Pedidos falsos en masa: `POST /api/orders` es público y no limita peticiones por cliente. | M | M | Límites por pedido (20 productos, 50 unidades). El tope de 1000 RU/s hace que un abuso termine en errores 503, no en una factura, y la alerta avisa. En producción: límite de peticiones por IP en la API y, si el abuso se repite, Azure Front Door con WAF (costo aparte). |
 | R3 | Datos personales sin aviso de privacidad ni autorización (Ley 1581). | A | M | Datos mínimos, fuera de los logs y cifrados (§4.4). Antes de abrir al público: aviso, casilla de autorización y TTL en `orders`. |
 | R4 | El panel del administrador no está construido. | A | B | Mientras tanto, el catálogo se cambia por PR y los pedidos se consultan en Cosmos DB. Diseño definido en §4.2. |
-| R5 | Clave de Cosmos DB en la configuración de la Static Web App (MVP). | B | A | Nunca está en el repo ni en los logs; la identidad del pipeline solo alcanza el grupo de recursos. En producción, identidad administrada y autenticación por clave desactivada (ADR-003). |
+| R5 | Clave maestra de Cosmos DB en la configuración de las dos Static Web Apps (MVP). Es de la cuenta compartida: un error en el código de dev, que se despliega sin aprobación, podría leer o cambiar los pedidos de prod. | B | A | Nunca está en el repo ni en los logs; dev solo se despliega desde `main`, después de las pruebas; la identidad del pipeline solo alcanza el grupo de recursos. En producción, identidad administrada con un rol de datos limitado a su base y autenticación por clave desactivada (ADR-003). |
 | R6 | Cosmos DB con acceso de red público (MVP). | B | M | TLS 1.2, clave requerida, Checkov documentado. En producción se evalúa un endpoint privado (`docs/despliegue.md`). |
 | R7 | Caída de la región Central US. | B | A | Riesgo aceptado: una segunda región duplica el costo. La infraestructura es código y se puede recrear en otra suscripción. |
 | R8 | Se superan las 400 RU/s en un pico. | B | M | Caché del catálogo y capacidad medida (§3.3). Prod puede subir a 600 RU/s sin costo (ADR-002). |
@@ -324,6 +325,9 @@ Probabilidad e impacto: A = alto, M = medio, B = bajo.
 | R10 | Pérdida o daño de pedidos por error humano o de código. | B | A | Respaldo continuo de 7 días con restauración autoservicio (ADR-004). |
 | R11 | Volver a respaldo periódico con `git revert` bloquea el pipeline. | B | M | El cambio es irreversible en Azure y está advertido en Bicep y en ADR-004. |
 | R12 | La suscripción de estudiante agota sus créditos o vence. | B | A | Presupuesto con avisos; el MVP cuesta casi cero. La infraestructura es código y se recrea en otra suscripción con `bootstrap.sh`. |
+| R13 | El rollback automático solo vuelve a desplegar la app. Los cambios de Bicep (configuración, alertas, Cosmos DB) y del catálogo se aplican antes del despliegue y quedan aplicados aunque el smoke test falle. | B | M | Bicep es declarativo: un cambio de infraestructura que rompa se revierte con `git revert` y merge, que vuelve a aplicar la versión anterior. El caso del catálogo está documentado en `docs/despliegue.md` (sección Catálogo). |
+| R14 | La API no tiene lockfile propio: el build de Static Web Apps instala `@azure/functions` y `@azure/cosmos` con rangos `^` en cada despliegue, y un rollback puede instalar versiones más nuevas que las que funcionaban. | B | M | El smoke test detecta una API rota y el pipeline no promueve a prod. Pendiente: versionar `src/api/package-lock.json`; en producción, desplegar la Function App como paquete construido en el pipeline. |
+| R15 | Dev y prod comparten la cuenta de Cosmos DB y Log Analytics: un despliegue de dev y uno de prod de ejecuciones distintas pueden actualizarlas a la vez. | B | B | La concurrencia es por ambiente. Si Azure rechaza uno por una operación en curso, falla sin cambios y se reintenta con "Re-run failed jobs". |
 
 ## 8. Decisiones de arquitectura
 

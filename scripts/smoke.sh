@@ -23,7 +23,9 @@ for i in $(seq 1 "$ATTEMPTS"); do
 done
 [ "$got" = "$SHA" ] || { echo "FALLO: el sitio sirve '${got:-nada}', se esperaba '$SHA'"; exit 1; }
 
-curl -fsS -o /dev/null "$URL/" && echo "  [ok] página principal"
+# Con `set -e`, un comando que falla dentro de `cmd && echo` no detiene el script: el fallo se maneja explícitamente.
+curl -fsS -o /dev/null "$URL/" || { echo "FALLO: la página principal no responde"; exit 1; }
+echo "  [ok] página principal"
 
 for i in $(seq 1 "$ATTEMPTS"); do
   status=$(curl -fsS "$URL/api/health" 2>/dev/null | jq -r '.status // empty' || true)

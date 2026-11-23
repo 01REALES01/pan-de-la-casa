@@ -46,8 +46,9 @@ autenticación por clave de Cosmos DB se desactiva.
 ## Consecuencias
 
 - **Nada que rotar ni que se pueda filtrar** desde GitHub. Un fork o un PR no obtiene acceso a Azure: Azure solo
-  acepta tokens de los environments `dev` y `prod` de este repositorio, los jobs que los usan solo corren con un push a
-  `main` (que está protegida), y `prod` además exige aprobación manual.
+  acepta tokens de los environments `dev` y `prod` de este repositorio, y los dos environments solo aceptan
+  despliegues desde ramas protegidas, es decir, desde `main` (que exige PR con CI en verde, también para los
+  administradores). `prod` además exige aprobación manual.
 - **Radio de impacto limitado:** si el pipeline se compromete, solo puede tocar el grupo de recursos del proyecto.
 - **En el MVP queda una clave de Cosmos DB** en la configuración de Static Web Apps, porque las managed functions no
   tienen identidad administrada. Por eso Checkov reporta "autenticación local habilitada"; es un riesgo aceptado del

@@ -13,6 +13,8 @@ const OPEN_HOUR = 7;
 const CLOSE_HOUR = 19;
 const SLOT_MINUTES = 15;
 const MIN_LEAD_MINUTES = 30;
+// La API exige los 30 minutos al recibir el pedido, no al abrir la página: se deja margen para llenar el formulario.
+const FORM_MARGIN_MINUTES = 10;
 const DAYS_AHEAD = 7;
 const BOGOTA_OFFSET_MS = -5 * 60 * 60 * 1000;
 const MAX_QTY = 50;
@@ -91,7 +93,9 @@ function slotsFor(dayIndex) {
   const last = CLOSE_HOUR * 60 - SLOT_MINUTES;
   let from = first;
   if (dayIndex === 0) {
-    const earliest = now.getUTCHours() * 60 + now.getUTCMinutes() + MIN_LEAD_MINUTES;
+    // Los segundos cuentan: a las 10:00:40 ya no se puede ofrecer 10:30.
+    const started = now.getUTCSeconds() > 0 || now.getUTCMilliseconds() > 0 ? 1 : 0;
+    const earliest = now.getUTCHours() * 60 + now.getUTCMinutes() + started + MIN_LEAD_MINUTES + FORM_MARGIN_MINUTES;
     from = Math.max(first, Math.ceil(earliest / SLOT_MINUTES) * SLOT_MINUTES);
   }
   const slots = [];
@@ -428,6 +432,7 @@ async function submitOrder(event) {
       return;
     }
     if (res.status === 400 && Array.isArray(data.errors)) {
+      fillDays(); // si la hora elegida ya no alcanza, desaparece de la lista
       showFormErrors('Revisa esto antes de enviar:', data.errors);
     } else {
       showFormErrors(data.error || 'No pudimos registrar el pedido. Intenta de nuevo en un momento.');

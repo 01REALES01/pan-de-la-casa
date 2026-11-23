@@ -101,7 +101,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          sha=$(gh run list -R "$GITHUB_REPOSITORY" --workflow ci-cd.yml --branch main \
+          # Solo pushes a main: un PR desde un fork cuya rama se llame main no cuenta como versión buena.
+          sha=$(gh run list -R "$GITHUB_REPOSITORY" --workflow ci-cd.yml --branch main --event push \
                 --status success --limit 1 --json headSha -q '.[0].headSha')
           echo "Última versión buena: ${sha:-ninguna}"
           echo "sha=$sha" >> "$GITHUB_OUTPUT"

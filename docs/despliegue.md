@@ -72,7 +72,7 @@ siguiente.
 
 
 1. **Automático:** si el smoke test falla, el pipeline busca el commit de la última ejecución exitosa de `ci-cd.yml`
-   en `main`, lo vuelve a desplegar y verifica con otro smoke test. La ejecución queda en rojo para que se vea.
+   por push a `main` (no cuenta la CI de un pull request), lo vuelve a desplegar y verifica con otro smoke test. La ejecución queda en rojo para que se vea.
 2. **Manual:** en GitHub Actions, abrir una ejecución anterior exitosa y usar "Re-run all jobs", o hacer
    `git revert` del commit problemático y hacer merge.
 
