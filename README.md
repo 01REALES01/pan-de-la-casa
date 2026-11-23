@@ -4,10 +4,24 @@ Proyecto final de **Paradigmas de Computación en la Nube** (Escuela Colombiana 
 La panadería "Pan de la Casa" recibe pedidos web para recoger en tienda. Este repositorio contiene el MVP,
 la infraestructura como código, el pipeline de CI/CD y la documentación de arquitectura.
 
+**Equipo:** Jean Paul Reales · Juan Diego Valderrama Gaviria. **Profesor:** Luis Carlos Galvis.
+
 **MVP:** consultar el catálogo y registrar un pedido.
 
 - Sitio en producción: https://gentle-cliff-087349110.6.azurestaticapps.net
 - Sitio de pruebas (dev): https://thankful-pond-0a5bc3e10.3.azurestaticapps.net
+
+## Entregables
+
+| Entregable | Dónde |
+|---|---|
+| Documento HLD (PDF) | [docs/HLD-Pan-de-la-Casa.pdf](docs/HLD-Pan-de-la-Casa.pdf) · fuente en [docs/hld.md](docs/hld.md) |
+| Decisiones de arquitectura (ADR) | [docs/adr/](docs/adr/): 4 ADR |
+| Diagramas (.drawio + PNG) | [docs/diagrams/](docs/diagrams/): contexto C4, arquitectura, red y seguridad, pipeline |
+| Estimación de costos | [docs/costs/](docs/costs/): [resumen](docs/costs/resumen.md), [Excel](docs/costs/costos.xlsx) y [enlaces a la calculadora oficial](docs/costs/enlaces.md) (MVP USD 0,80/mes · producción USD 10,05/mes) |
+| Supuestos de uso | [docs/supuestos.md](docs/supuestos.md) |
+| Diseño de despliegue | [docs/despliegue.md](docs/despliegue.md): etapas, tiempos medidos, rollback, restauración y pruebas que bloquean |
+| Código, pipeline e IaC | `src/`, [.github/workflows/](.github/workflows/), [infra/](infra/) |
 
 | Endpoint | Qué hace |
 |---|---|

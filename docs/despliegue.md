@@ -1,7 +1,5 @@
 # Diseño del despliegue
 
-> Borrador; se completa con tiempos medidos y capturas del pipeline.
-
 ## Etapas
 
 | Etapa | Cuándo corre | Qué hace | Si falla |
@@ -11,6 +9,20 @@
 | CodeQL | PR, push y semanal | Análisis de seguridad del código | Reporta en Security |
 | Desplegar dev | Push a `main` | Bicep (dev) → catálogo → app → smoke test | Rollback de dev; prod no se despliega |
 | Desplegar prod | Tras dev, con aprobación | Bicep (prod) → catálogo → app → smoke test | Rollback de prod |
+
+**Tiempos medidos** (ejecución [44764431992](https://github.com/01REALES01/pan-de-la-casa/actions/runs/44764431992),
+merge del PR #9):
+
+| Tramo | Duración |
+|---|---|
+| Lint y pruebas | 12 s |
+| Validación de IaC | 35 s (en paralelo con las pruebas) |
+| Desplegar dev, con su smoke test | 2 min 43 s |
+| **Del merge a dev verificado** | **3 min 24 s** |
+| Desplegar prod después de aprobar, con su smoke test | **2 min 15 s** |
+
+Sin contar la espera de la aprobación, un cambio llega a producción en unos 6 minutos: cabe en los 5 minutos de la
+demo si el merge se hace al empezar la presentación.
 
 ## Ambientes
 
@@ -43,6 +55,25 @@ mano (es el cambio de la demo). La clave de Cosmos DB se pide en ese momento con
 El rollback vuelve a desplegar el código anterior pero no el catálogo anterior: los datos quedan en la última versión
 sincronizada. Para el MVP es aceptable (el formato de los productos no cambia); si cambiara, el rollback también
 tendría que volver a sincronizar el catálogo del commit bueno.
+
+## Pruebas que bloquean el merge y el despliegue
+
+> Estado: **probado el 22 de noviembre de 2026** (PR [#13](https://github.com/01REALES01/pan-de-la-casa/pull/13),
+> ejecución [45108745569](https://github.com/01REALES01/pan-de-la-casa/actions/runs/45108745569)).
+
+**Prueba.** El PR #13 escribió el precio del pandebono como `2.700`, con punto de miles, un error fácil al editar
+`data/catalog.json`. En JSON eso es 2,7 pesos. Resultado:
+
+- La prueba "el catálogo semilla es válido" falló con `Producto 1 (pandebono): el precio debe ser un entero
+  positivo.` También falló la del pedido, que calcula el total con ese precio: 21 de 23 pruebas pasaron.
+- El job "Lint y pruebas" quedó en rojo y GitHub marcó el PR como bloqueado (`mergeStateStatus: BLOCKED`): `main`
+  exige que "Lint y pruebas" y "Validación y análisis de IaC" pasen antes del merge.
+- "Desplegar dev" y "Desplegar prod" no corrieron: los despliegues dependen de las pruebas, también en un push a
+  `main`.
+
+El PR se cerró sin merge.
+
+![Ejecución del PR #13: falla npm test y los despliegues no corren](evidencias/pruebas-bloquean.png)
 
 ## Rollback
 
@@ -133,10 +164,10 @@ ni en los logs (Bicep la escribe en la configuración de cada Static Web App y e
 metadatos con clave está desactivada (`disableKeyBasedMetadataWriteAccess`, por eso CKV_AZURE_132 pasa); y la
 identidad del pipeline solo tiene permisos sobre el grupo de recursos.
 
-## Pendiente
+## Verificaciones
 
-- [ ] Medir la duración total del pipeline (la demo dura 5 minutos). Primera medición: CI + dev ≈ 3 min.
+- [x] Medir la duración del pipeline: 3 min 24 s del merge a dev y 2 min 15 s a prod después de aprobar (ver Etapas).
 - [x] Probar el rollback automático en dev y guardar la captura (17 nov, ver arriba).
 - [x] Simulacro de restauración de datos: unos 12 minutos (19 nov, ver arriba).
 - [x] Justificar los hallazgos de Checkov aceptados (ver arriba).
-- [ ] Captura de una ejecución bloqueada por pruebas (la del rollback ya está).
+- [x] Captura de una ejecución bloqueada por pruebas (22 nov, ver arriba).
