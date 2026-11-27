@@ -1,6 +1,6 @@
 'use strict';
 
-// Pan de la Casa: catálogo, carrito y pedido. Sin dependencias.
+// Pan de la Casa: catálogo, carrito y pedido. Sin dependencias (vanilla JS, sin build).
 
 const CATEGORIES = {
   amasijos: 'Amasijos',
